@@ -1,2 +1,6 @@
 # FedSelection
-Uses command python main.py -c ./utils/conf.json to run the script
+Uses command
+```
+python main.py -c ./utils/conf.json
+```
+to run the script
