@@ -6,9 +6,9 @@
 	
 	"type" : "cifar",
 	
-	"global_epochs" : 20,
+	"global_epochs" : 10,
 	
-	"local_epochs" : 3,
+	"local_epochs" : 5,
 	
 	"k" : 5,
 	
