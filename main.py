@@ -29,33 +29,37 @@ if __name__ == '__main__':
 	
 	server = Server(conf, eval_datasets)
 	clients = []
-	
+	clients_id = []
+	client_loss = {}
 	for c in range(conf["no_models"]):
 		clients.append(Client(conf, server.global_model, train_datasets, c))
-		
+
 	print("\n\n")
 	for e in range(conf["global_epochs"]):
+		clients_id = []
 		epoch.append(e)
 		candidates = random.sample(clients, conf["k"])
-		
+		for can in candidates:
+			clients_id.append(can.client_id)
+		print("Candidates selected this round:", clients_id)
 		weight_accumulator = {}
 		
 		for name, params in server.global_model.state_dict().items():
 			weight_accumulator[name] = torch.zeros_like(params)
 		
 		for c in candidates:
-			diff = c.local_train(server.global_model)
-			
+			diff, c_loss = c.local_train(server.global_model)
+			client_loss[c.client_id] = c_loss
 			for name, params in server.global_model.state_dict().items():
 				weight_accumulator[name].add_(diff[name])
 				
 		
 		server.model_aggregate(weight_accumulator)
-		
+		print(client_loss)
 		acc, loss = server.model_eval()
 		accuracy.append(acc)
 		los.append(loss)
-		print("Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss))
+		print("Global Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss))
 
 	print(f'\nPlotting Accuracy vs Epochs')
 	plt.plot(epoch,accuracy, c='r')

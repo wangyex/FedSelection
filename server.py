@@ -5,9 +5,9 @@ import models, torch
 class Server(object):
 	
 	def __init__(self, conf, eval_dataset):
-	
+		#Load config file
 		self.conf = conf 
-		
+		#Load model name
 		self.global_model = models.get_model(self.conf["model_name"]) 
 		
 		self.eval_loader = torch.utils.data.DataLoader(eval_dataset, batch_size=self.conf["batch_size"], shuffle=True)

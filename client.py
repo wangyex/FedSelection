@@ -30,8 +30,10 @@ class Client(object):
 									momentum=self.conf['momentum'])
 		#print(id(self.local_model))
 		self.local_model.train()
+		min_loss = 0
 		for e in range(self.conf["local_epochs"]):
-			
+
+			loss_arr = []
 			for batch_id, batch in enumerate(self.train_loader):
 				data, target = batch
 				
@@ -43,13 +45,16 @@ class Client(object):
 				output = self.local_model(data)
 				loss = torch.nn.functional.cross_entropy(output, target)
 				loss.backward()
-			
+				loss_arr.append(loss.item())
 				optimizer.step()
-			print("Epoch %d done." % e)	
+				min_loss = min(loss_arr)
+			print("Local Epoch {} done for client {}." .format(e, self.client_id))
+		print("Best Loss for client {} is {}".format(self.client_id, min_loss))
 		diff = dict()
 		for name, data in self.local_model.state_dict().items():
 			diff[name] = (data - model.state_dict()[name])
 			#print(diff[name])
-			
-		return diff
+			#print("Client %d local train done" % self.client_id)
+			#print("Loss is:", min_loss)
+		return diff, min_loss
 		
