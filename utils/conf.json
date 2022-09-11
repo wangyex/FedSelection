@@ -10,7 +10,7 @@
 	
 	"local_epochs" : 5,
 	
-	"k" : 10,
+	"k" : 5,
 	
 	"batch_size" : 32,
 	
