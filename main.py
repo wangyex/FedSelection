@@ -31,10 +31,10 @@ if __name__ == '__main__':
 
     # initiate default static and dynamic weight for number of clients
     for i in range(conf["no_models"]):
-        static_weight[i] = 2
+        static_weight[i] = 1
 
     for i in range(conf["no_models"]):
-        dynamic_weight[i] = static_weight[i]
+        dynamic_weight[i] = 0
 
     print(dynamic_weight)
 
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     clients = []
     clients_id = []
     client_loss = {}
-    sorted_client_loss = list(sorted(dynamic_weight.items(), key=operator.itemgetter(1),reverse=True))
+    #sorted_client_loss = list(sorted(dynamic_weight.items(), key=operator.itemgetter(1),reverse=True))
     for c in range(conf["no_models"]):
         clients.append(Client(conf, server.global_model, train_datasets, c))
 
@@ -59,11 +59,23 @@ if __name__ == '__main__':
         # Original Random Sampling Method
         #candidates = random.sample(clients, conf["k"])
 
+        #Update the dynamic weight for this iteration
+        for i in range(conf["no_models"]):
+            dynamic_weight[i] += conf["coeff"] * static_weight[i]
+
         #Sample based on top 10 highest loss
         sorted_client_loss = list(sorted(dynamic_weight.items(), key=operator.itemgetter(1),reverse=True))
+
+        #calculating the average of current iteration of static weight
+        avg = 0
+        for val in static_weight.values():
+            avg += val
+        avg = avg / len(static_weight)
+
         print("Sorted client loss this round: ", sorted_client_loss)
-        for client in sorted_client_loss[:10]:
+        for client in sorted_client_loss[:conf["k"]]:
             candidates.append(clients[client[0]])
+            static_weight[client[0]] = dynamic_weight[client[0]] - avg
 
         for can in candidates:
             clients_id.append(can.client_id)
@@ -85,6 +97,7 @@ if __name__ == '__main__':
         print("Sorted client loss per global epoch is: ",sorted_client_loss_per_global_epoch)
         for tup in sorted_client_loss_per_global_epoch:
             dynamic_weight[tup[0]] = tup[1]
+            static_weight[tup[0]] = tup[1]
 
         #sort the updated dynamic_weight dict
         #dynamic_weight = dict(sorted(dynamic_weight.items(), key=lambda item: item[1]))
@@ -92,9 +105,13 @@ if __name__ == '__main__':
         acc, loss = server.model_eval()
         accuracy.append(acc)
         los.append(loss)
+
+
         #print(dynamic_weight)
         print("Global Epoch %d, acc: %f, loss: %f\n" % (e, acc, loss))
 
+
+    #Plotting the performance figures
     print(f'\nPlotting Accuracy vs Epochs')
     plt.plot(epoch, accuracy, c='r')
 
