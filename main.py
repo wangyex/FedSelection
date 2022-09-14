@@ -71,7 +71,7 @@ if __name__ == '__main__':
             avg += val
         avg = avg / len(static_weight)
 
-        print("Sorted client loss this round: ", sorted_client_loss)
+        print("Sorted client selection weight this round: ", sorted_client_loss)
         #select k clients with largest losses
         for client in sorted_client_loss[:conf["k"]]:
             candidates.append(clients[client[0]])
