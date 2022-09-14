@@ -24,14 +24,13 @@ if __name__ == '__main__':
     epoch = []
     accuracy = []
     static_weight = {}
-    initial_weight = 2
     dynamic_weight = {}
     with open(args.conf, 'r') as f:
         conf = json.load(f)
 
     # initiate default static and dynamic weight for number of clients
     for i in range(conf["no_models"]):
-        static_weight[i] = 1
+        static_weight[i] = 3
 
     for i in range(conf["no_models"]):
         dynamic_weight[i] = 0
@@ -63,7 +62,7 @@ if __name__ == '__main__':
         for i in range(conf["no_models"]):
             dynamic_weight[i] += conf["coeff"] * static_weight[i]
 
-        #Sample based on top 10 highest loss
+        #Sort the updated dynamic weight dict
         sorted_client_loss = list(sorted(dynamic_weight.items(), key=operator.itemgetter(1),reverse=True))
 
         #calculating the average of current iteration of static weight
@@ -73,6 +72,7 @@ if __name__ == '__main__':
         avg = avg / len(static_weight)
 
         print("Sorted client loss this round: ", sorted_client_loss)
+        #select k clients with largest losses
         for client in sorted_client_loss[:conf["k"]]:
             candidates.append(clients[client[0]])
             static_weight[client[0]] = dynamic_weight[client[0]] - avg
@@ -96,8 +96,10 @@ if __name__ == '__main__':
         sorted_client_loss_per_global_epoch = sorted(client_loss.items(), key=lambda x: x[1], reverse=True)
         print("Sorted client loss per global epoch is: ",sorted_client_loss_per_global_epoch)
         for tup in sorted_client_loss_per_global_epoch:
-            dynamic_weight[tup[0]] = tup[1]
+            #dynamic_weight[tup[0]] = tup[1]
             static_weight[tup[0]] = tup[1]
+
+        print("Static Weight after calculation", static_weight)
 
         #sort the updated dynamic_weight dict
         #dynamic_weight = dict(sorted(dynamic_weight.items(), key=lambda item: item[1]))
